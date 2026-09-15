@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>L'Épreuve — Quiz Basketball</title>
+<style>
+:root{
+  --bleu-fond:#101c3e;
+  --bleu-clair:#1e3c72;
+  --or:#d4af37;
+  --or-sombre:#c0a02c;
+  --texte:#f0f0f0;
+  --vert:#3fae6a;
+  --rouge:#d2564f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Georgia,'Times New Roman',serif;
+  background:linear-gradient(135deg,var(--bleu-fond) 0%,var(--bleu-clair) 100%);
+  background-attachment:fixed;
+  color:var(--texte);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:24px 16px;
+  padding-top:calc(24px + env(safe-area-inset-top,0px));
+  padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));
+}
+.container{
+  background-color:rgba(0,0,0,.4);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  box-shadow:0 15px 35px rgba(0,0,0,.7);
+  padding:40px 36px;
+  max-width:680px;
+  width:100%;
+}
+.ecran{display:none}
+.ecran.actif{display:block}
+
+/* --- Accueil --- */
+.proverbe{
+  font-size:1.5em;
+  font-weight:300;
+  line-height:1.8;
+  border-left:4px solid var(--or);
+  padding-left:20px;
+  margin-bottom:36px;
+}
+.proverbe p{margin:10px 0}
+.signature{
+  font-weight:bold;font-style:italic;color:var(--or);
+  text-align:right;margin-top:26px!important;font-size:.95em;
+}
+.reglement{
+  font-size:.95em;line-height:1.7;color:#c9cfdd;
+  border-top:1px solid rgba(255,255,255,.12);
+  padding-top:20px;margin-bottom:28px;
+}
+.reglement strong{color:var(--or);font-weight:600}
+
+/* --- Boutons --- */
+.bouton-action{
+  display:inline-block;padding:13px 28px;
+  background-color:var(--or);color:var(--bleu-fond);
+  border:none;border-radius:5px;cursor:pointer;
+  font-family:inherit;font-weight:700;font-size:1em;
+  text-transform:uppercase;letter-spacing:1px;
+  transition:background-color .3s,transform .3s;
+}
+.bouton-action:hover{background-color:var(--or-sombre);transform:translateY(-2px)}
+.bouton-fantome{
+  display:inline-block;padding:13px 28px;margin-left:10px;
+  background:transparent;color:var(--or);
+  border:1px solid var(--or);border-radius:5px;cursor:pointer;
+  font-family:inherit;font-size:.95em;letter-spacing:1px;text-transform:uppercase;
+}
+.bouton-fantome:hover{background:rgba(212,175,55,.12)}
+
+/* --- Quiz --- */
+.barre-haut{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:.9em;color:#a8b2c8;letter-spacing:1px;margin-bottom:12px;
+}
+.barre-haut .score{color:var(--or);font-weight:bold}
+.piste{background:rgba(0,0,0,.35);border-radius:20px;height:5px;overflow:hidden;margin-bottom:28px}
+.remplissage{height:100%;width:0;background:var(--or);border-radius:20px;transition:width .4s ease}
+.categorie{
+  display:inline-block;font-size:.75em;letter-spacing:2px;text-transform:uppercase;
+  color:var(--bleu-fond);background:var(--or);border-radius:3px;
+  padding:3px 10px;margin-bottom:14px;
+}
+.question{font-size:1.3em;line-height:1.6;margin-bottom:26px}
+.choix{list-style:none}
+.choix li{margin-bottom:11px}
+.choix button{
+  width:100%;text-align:left;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:6px;color:var(--texte);
+  font-family:inherit;font-size:1.02em;
+  padding:13px 16px;cursor:pointer;
+  transition:background .2s,border-color .2s;
+}
+.choix button:hover:not(:disabled){background:rgba(212,175,55,.14);border-color:var(--or)}
+.choix button:disabled{cursor:default}
+.choix button.juste{background:rgba(63,174,106,.22);border-color:var(--vert)}
+.choix button.faux{background:rgba(210,86,79,.22);border-color:var(--rouge)}
+.verdict{margin-top:20px;font-style:italic;font-size:1.02em;min-height:26px}
+.verdict.ok{color:var(--vert)}
+.verdict.ko{color:var(--rouge)}
+.pied{margin-top:24px;text-align:right}
+
+/* --- Résultat --- */
+.note{font-size:3.2em;color:var(--or);text-align:center;line-height:1.2}
+.note small{display:block;font-size:.28em;letter-spacing:3px;text-transform:uppercase;color:#a8b2c8;margin-top:8px}
+.mention{
+  text-align:center;font-style:italic;font-size:1.2em;
+  margin:24px 0 30px;line-height:1.7;color:var(--texte);
+}
+.recap{max-height:320px;overflow-y:auto;border-top:1px solid rgba(255,255,255,.12);padding-top:18px}
+.recap-item{font-size:.95em;line-height:1.6;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.recap-item .q{color:#c9cfdd}
+.recap-item .bonne{color:var(--vert)}
+.recap-item .mauvaise{color:var(--rouge);text-decoration:line-through;opacity:.75}
+.actions{margin-top:28px;text-align:center}
+
+@media (max-width:520px){
+  .container{padding:28px 20px}
+  .proverbe{font-size:1.2em;padding-left:14px}
+  .question{font-size:1.15em}
+  .bouton-action,.bouton-fantome{display:block;width:100%;margin:10px 0 0}
+  .pied{text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ======================= ACCUEIL ======================= -->
+  <section id="ecran-accueil" class="ecran actif">
+    <blockquote class="proverbe">
+      <p>Si tu es mis à l'épreuve, c'est que tu peux la réussir ;</p>
+      <p>l'échec n'a de force que la vulnérabilité...</p>
+      <p class="signature">... et le succès n'a d'allié que la persévérance.</p>
+    </blockquote>
+
+    <div class="reglement">
+      <strong>L'épreuve :</strong> 20 questions de basketball tirées au hasard dans une banque de plus de 100.
+      Règles, histoire, légendes, records, Afrique. Une seule bonne réponse, pas de retour en arrière.
+      Chaque partie est différente.
+    </div>
+
+    <button class="bouton-action" onclick="lancerEpreuve()">Commencer l'épreuve</button>
+  </section>
+
+  <!-- ======================= QUIZ ======================= -->
+  <section id="ecran-quiz" class="ecran">
+    <div class="barre-haut">
+      <span id="compteur">Question 1 / 20</span>
+      <span class="score" id="affichage-score">0 pt</span>
+    </div>
+    <div class="piste"><div class="remplissage" id="remplissage"></div></div>
+
+    <span class="categorie" id="categorie">Règles</span>
+    <h2 class="question" id="question">...</h2>
+    <ul class="choix" id="choix"></ul>
+    <p class="verdict" id="verdict"></p>
+
+    <div class="pied">
+      <button class="bouton-action" id="bouton-suivant" onclick="questionSuivante()" style="display:none">Suivant</button>
+    </div>
+  </section>
+
+  <!-- ======================= RÉSULTAT ======================= -->
+  <section id="ecran-resultat" class="ecran">
+    <div class="note"><span id="note-chiffre">0 / 20</span><small id="note-pourcent">0 %</small></div>
+    <p class="mention" id="mention"></p>
+    <div class="recap" id="recap"></div>
+    <div class="actions">
+      <button class="bouton-action" onclick="lancerEpreuve()">Nouvelle épreuve</button>
+      <button class="bouton-fantome" onclick="retourAccueil()">Retour</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   BANQUE DE QUESTIONS — 105 entrées
+   Format : [catégorie, question, [choix], index de la bonne réponse]
+   ========================================================= */
+const BANQUE = [
+  /* ---------- RÈGLES DU JEU ---------- */
+  ["Règles","Combien de joueurs chaque équipe aligne-t-elle sur le terrain ?",["4","5","6","7"],1],
+  ["Règles","Quelle est la durée d'un quart-temps en NBA ?",["8 minutes","10 minutes","12 minutes","15 minutes"],2],
+  ["Règles","Quelle est la durée d'un quart-temps selon les règles FIBA ?",["8 minutes","10 minutes","12 minutes","20 minutes"],1],
+  ["Règles","Combien de secondes une équipe a-t-elle pour tirer en NBA ?",["18","20","24","30"],2],
+  ["Règles","Combien de secondes pour franchir la ligne médiane en NBA ?",["5","8","10","12"],1],
+  ["Règles","Combien de temps un attaquant peut-il rester dans la raquette adverse ?",["2 secondes","3 secondes","5 secondes","8 secondes"],1],
+  ["Règles","Combien vaut un lancer franc réussi ?",["1 point","2 points","3 points","0,5 point"],0],
+  ["Règles","À quelle hauteur se trouve l'anneau du panier ?",["2,95 m","3,05 m","3,15 m","3,25 m"],1],
+  ["Règles","Après combien de fautes personnelles un joueur est-il exclu en NBA ?",["4","5","6","7"],2],
+  ["Règles","Après combien de fautes personnelles un joueur est-il exclu selon la FIBA ?",["4","5","6","7"],1],
+  ["Règles","Comment appelle-t-on le fait de reprendre son dribble après l'avoir arrêté ?",["Marcher","Double dribble","Retour en zone","Goaltending"],1],
+  ["Règles","Comment appelle-t-on le fait d'avancer avec le ballon sans dribbler ?",["Marcher","Charge","Passage en force","Antisportive"],0],
+  ["Règles","Que sanctionne le « goaltending » ?",["Un tir depuis le banc","Le contre d'un ballon dans sa phase descendante","Une passe en retrait","Un dribble trop haut"],1],
+  ["Règles","Quel est le diamètre de l'anneau ?",["40 cm","45 cm","50 cm","55 cm"],1],
+  ["Règles","Quelle est la longueur d'un terrain FIBA ?",["26 m","28 m","30 m","32 m"],1],
+  ["Règles","Quelle est la largeur d'un terrain FIBA ?",["13 m","14 m","15 m","16 m"],2],
+  ["Règles","À quelle distance se trouve la ligne à 3 points en FIBA (hors coins) ?",["6,25 m","6,75 m","7,24 m","7,50 m"],1],
+  ["Règles","À quelle distance se trouve la ligne à 3 points en NBA (hors coins) ?",["6,75 m","7,00 m","7,24 m","7,60 m"],2],
+  ["Règles","Quelle est la durée d'une prolongation en NBA ?",["3 minutes","5 minutes","8 minutes","10 minutes"],1],
+  ["Règles","Combien d'arbitres officient sur un match NBA ?",["1","2","3","4"],2],
+  ["Règles","Que désigne le « retour en zone » ?",["Un tir manqué","Le renvoi du ballon dans sa propre moitié de terrain","Un changement de joueur","Une faute technique"],1],
+  ["Règles","À quelle distance du panneau se trouve la ligne des lancers francs ?",["3,60 m","4,60 m","5,20 m","6,00 m"],1],
+  ["Règles","Qu'est-ce qu'un « step back » ?",["Un tir après un pas en arrière","Un contre à deux mains","Une passe aveugle","Un dribble entre les jambes"],0],
+  ["Règles","Combien vaut un panier marqué depuis l'intérieur de la ligne des 3 points ?",["1 point","2 points","3 points","4 points"],1],
+  ["Règles","Comment reprend le jeu après un entre-deux au début du match ?",["Une remise en jeu","Un saut entre deux joueurs","Un lancer franc","Un tirage au sort"],1],
+
+  /* ---------- HISTOIRE ---------- */
+  ["Histoire","Qui a inventé le basketball ?",["James Naismith","Chuck Taylor","Amos Stagg","John Wooden"],0],
+  ["Histoire","En quelle année le basketball a-t-il été inventé ?",["1875","1891","1901","1912"],1],
+  ["Histoire","Dans quelle ville le basketball a-t-il été inventé ?",["Boston","New York","Springfield","Chicago"],2],
+  ["Histoire","Quelle était la nationalité d'origine de James Naismith ?",["Américaine","Canadienne","Écossaise","Irlandaise"],1],
+  ["Histoire","Combien de règles comptait le règlement original de Naismith ?",["7","10","13","18"],2],
+  ["Histoire","Quel objet servait de panier lors des premiers matchs ?",["Un seau en fer","Un panier à pêches","Un filet de pêche","Une caisse en bois"],1],
+  ["Histoire","En quelle année la ligue qui deviendra la NBA a-t-elle été créée ?",["1936","1946","1950","1956"],1],
+  ["Histoire","En quelle année la NBA et l'ABA ont-elles fusionné ?",["1971","1974","1976","1980"],2],
+  ["Histoire","En quelle année la FIBA a-t-elle été fondée ?",["1920","1932","1945","1950"],1],
+  ["Histoire","À quels Jeux olympiques le basketball masculin est-il devenu sport olympique ?",["Paris 1924","Los Angeles 1932","Berlin 1936","Londres 1948"],2],
+  ["Histoire","Depuis quels Jeux le basketball féminin est-il olympique ?",["Mexico 1968","Munich 1972","Montréal 1976","Moscou 1980"],2],
+  ["Histoire","Où la « Dream Team » a-t-elle marqué les esprits ?",["Séoul 1988","Barcelone 1992","Atlanta 1996","Sydney 2000"],1],
+  ["Histoire","En quelle année la ligne à 3 points a-t-elle été adoptée par la NBA ?",["1967","1973","1979","1984"],2],
+  ["Histoire","En quelle année s'est jouée la première saison de la WNBA ?",["1993","1995","1997","2000"],2],
+  ["Histoire","En quelle année l'horloge des 24 secondes a-t-elle été introduite en NBA ?",["1948","1954","1960","1966"],1],
+  ["Histoire","De quelles couleurs était le ballon de l'ABA ?",["Orange uni","Rouge, blanc et bleu","Noir et or","Vert et blanc"],1],
+  ["Histoire","Dans quelle ville s'est joué le tout premier match de la ligue en 1946 ?",["New York","Boston","Toronto","Philadelphie"],2],
+  ["Histoire","En quelle année s'est tenue la première saison de la Basketball Africa League ?",["2018","2019","2021","2023"],2],
+  ["Histoire","Dans quelle ville s'est jouée la première saison de la BAL ?",["Dakar","Kigali","Le Caire","Lagos"],1],
+  ["Histoire","Quelle équipe a dominé la NBA dans les années 1960 avec huit titres consécutifs ?",["Boston Celtics","Los Angeles Lakers","Philadelphia 76ers","New York Knicks"],0],
+
+  /* ---------- LÉGENDES ---------- */
+  ["Légendes","Combien de titres NBA Michael Jordan a-t-il remportés ?",["4","5","6","7"],2],
+  ["Légendes","Combien de trophées de MVP des Finales Michael Jordan a-t-il gagnés ?",["3","4","6","8"],2],
+  ["Légendes","Quel numéro Michael Jordan portait-il principalement ?",["12","23","32","45"],1],
+  ["Légendes","Avec quelle franchise Michael Jordan a-t-il gagné ses titres ?",["Chicago Bulls","Detroit Pistons","Washington Wizards","Miami Heat"],0],
+  ["Légendes","Qui a inscrit 100 points en un seul match NBA ?",["Wilt Chamberlain","Bill Russell","Elgin Baylor","Oscar Robertson"],0],
+  ["Légendes","En quelle année ce record de 100 points a-t-il été établi ?",["1957","1962","1968","1971"],1],
+  ["Légendes","Quel joueur détient le record de titres NBA remportés ?",["Michael Jordan","Bill Russell","Kareem Abdul-Jabbar","Magic Johnson"],1],
+  ["Légendes","Quel était le surnom de Kobe Bryant ?",["Black Mamba","The Answer","King","The Truth"],0],
+  ["Légendes","Quels numéros Kobe Bryant a-t-il portés aux Lakers ?",["8 et 24","6 et 23","10 et 33","5 et 15"],0],
+  ["Légendes","Combien de points Kobe Bryant a-t-il marqués lors de son dernier match ?",["45","50","60","70"],2],
+  ["Légendes","Quel est le record de points en un match de Kobe Bryant ?",["71","78","81","92"],2],
+  ["Légendes","Quel est le surnom de LeBron James ?",["King James","The Chosen","Big Game","Iron Man"],0],
+  ["Légendes","Par quelle équipe LeBron James a-t-il été drafté en 2003 ?",["Miami Heat","Cleveland Cavaliers","Los Angeles Lakers","Detroit Pistons"],1],
+  ["Légendes","Combien de titres NBA LeBron James a-t-il remportés ?",["2","3","4","5"],2],
+  ["Légendes","Quel surnom était associé à Shaquille O'Neal ?",["The Diesel","The Glove","The Dream","The Worm"],0],
+  ["Légendes","À quel poste évoluait Magic Johnson ?",["Meneur","Ailier fort","Pivot","Arrière"],0],
+  ["Légendes","Quel joueur formait le duel légendaire des années 1980 avec Magic Johnson ?",["Larry Bird","Julius Erving","Isiah Thomas","Dominique Wilkins"],0],
+  ["Légendes","Dans quelle franchise Larry Bird a-t-il fait toute sa carrière ?",["Boston Celtics","Indiana Pacers","Philadelphia 76ers","Milwaukee Bucks"],0],
+  ["Légendes","Quel tir signature a rendu Kareem Abdul-Jabbar célèbre ?",["Le fadeaway","Le skyhook","Le floater","Le hook-shot inversé à deux mains"],1],
+  ["Légendes","Qui est le meilleur marqueur de l'histoire de la NBA en saison régulière ?",["Kareem Abdul-Jabbar","Karl Malone","LeBron James","Michael Jordan"],2],
+  ["Légendes","Quel était le surnom de Tim Duncan ?",["The Big Fundamental","The Admiral","The Mailman","The Round Mound"],0],
+  ["Légendes","Dans quelle franchise Tim Duncan a-t-il passé toute sa carrière ?",["San Antonio Spurs","Houston Rockets","Dallas Mavericks","Orlando Magic"],0],
+  ["Légendes","Pour quelle spécialité Stephen Curry est-il devenu une référence mondiale ?",["Le contre","Le tir à 3 points","Le rebond offensif","Le dunk"],1],
+  ["Légendes","Dans quelle franchise Stephen Curry a-t-il bâti sa carrière ?",["Golden State Warriors","Sacramento Kings","Phoenix Suns","Portland Trail Blazers"],0],
+  ["Légendes","Quel est le surnom de Giannis Antetokounmpo ?",["Greek Freak","The Wall","Big Ticket","Thunder"],0],
+  ["Légendes","De quel pays les parents de Giannis Antetokounmpo sont-ils originaires ?",["Ghana","Nigeria","Cameroun","Sénégal"],1],
+  ["Légendes","Avec quelle équipe Giannis Antetokounmpo a-t-il remporté le titre en 2021 ?",["Milwaukee Bucks","Miami Heat","Toronto Raptors","Denver Nuggets"],0],
+  ["Légendes","Quelle est la nationalité de Dirk Nowitzki ?",["Allemande","Autrichienne","Suisse","Néerlandaise"],0],
+  ["Légendes","Quelle est la nationalité de Tony Parker ?",["Belge","Française","Canadienne","Espagnole"],1],
+  ["Légendes","Combien de titres NBA Tony Parker a-t-il remportés ?",["2","3","4","5"],2],
+  ["Légendes","De quel pays Hakeem Olajuwon est-il originaire ?",["Nigeria","Ghana","Soudan","Égypte"],0],
+  ["Légendes","De quel pays Manute Bol était-il originaire ?",["Soudan","Kenya","Éthiopie","Tchad"],0],
+  ["Légendes","De quel pays Dikembe Mutombo était-il originaire ?",["RD Congo","Congo-Brazzaville","Angola","Rwanda"],0],
+  ["Légendes","De quel pays Joel Embiid est-il originaire ?",["Cameroun","Gabon","Côte d'Ivoire","Bénin"],0],
+  ["Légendes","De quel pays Pascal Siakam est-il originaire ?",["Cameroun","Nigeria","Sénégal","Mali"],0],
+  ["Légendes","Quelle est la nationalité de Victor Wembanyama ?",["Française","Belge","Sénégalaise","Espagnole"],0],
+  ["Légendes","Par quelle franchise Victor Wembanyama a-t-il été drafté en 2023 ?",["San Antonio Spurs","Charlotte Hornets","Detroit Pistons","Houston Rockets"],0],
+  ["Légendes","Avec quelle équipe le Franco-Béninois Ian Mahinmi a-t-il été champion NBA en 2011 ?",["Dallas Mavericks","Indiana Pacers","Washington Wizards","San Antonio Spurs"],0],
+  ["Légendes","Quelle taille atteignaient Manute Bol et Gheorghe Mureșan, les plus grands joueurs de l'histoire NBA ?",["2,21 m","2,26 m","2,31 m","2,36 m"],2],
+  ["Légendes","Quel joueur détient le record de triple-doubles en carrière NBA ?",["Oscar Robertson","Russell Westbrook","Magic Johnson","LeBron James"],1],
+
+  /* ---------- ÉQUIPES ET COMPÉTITIONS ---------- */
+  ["Compétitions","Quelle franchise détient le plus grand nombre de titres NBA ?",["Boston Celtics","Los Angeles Lakers","Chicago Bulls","Golden State Warriors"],0],
+  ["Compétitions","Dans quelle ville évoluent les Lakers ?",["New York","Los Angeles","Minneapolis","Miami"],1],
+  ["Compétitions","Dans quelle salle mythique jouent les New York Knicks ?",["Madison Square Garden","Staples Center","United Center","TD Garden"],0],
+  ["Compétitions","Combien de franchises compte la NBA ?",["28","29","30","32"],2],
+  ["Compétitions","En combien de conférences la NBA est-elle divisée ?",["2","3","4","6"],0],
+  ["Compétitions","Combien de matchs compte une saison régulière NBA ?",["72","78","82","88"],2],
+  ["Compétitions","Selon quel format se jouent les Finales NBA ?",["Match unique","Au meilleur des 5","Au meilleur des 7","Aller-retour"],2],
+  ["Compétitions","Comment s'appelle le trophée remis au champion NBA ?",["Larry O'Brien","Bill Russell","Maurice Podoloff","Walter Kennedy"],0],
+  ["Compétitions","Quel nom porte le trophée de MVP des Finales NBA ?",["Bill Russell","Larry O'Brien","Michael Jordan","Red Auerbach"],0],
+  ["Compétitions","Pendant quel événement se déroule le concours de dunks ?",["Le All-Star Weekend","La finale de conférence","La draft","Le Summer League"],0],
+  ["Compétitions","Quel est le record de victoires en saison régulière NBA ?",["69","70","72","73"],3],
+  ["Compétitions","Quelle équipe était surnommée le « Showtime » dans les années 1980 ?",["Los Angeles Lakers","Boston Celtics","Detroit Pistons","Philadelphia 76ers"],0],
+  ["Compétitions","Qu'est-ce qu'un triple-double ?",["Trois paniers à 3 points d'affilée","Au moins 10 unités dans trois catégories statistiques","Trois fautes en une action","Trois prolongations"],1],
+  ["Compétitions","Qu'est-ce qu'un quadruple-double ?",["Quatre dunks dans un quart-temps","Au moins 10 unités dans quatre catégories statistiques","Quatre prolongations","Quatre lancers francs consécutifs"],1],
+  ["Compétitions","Quel pays est le plus titré aux Jeux olympiques en basketball masculin ?",["États-Unis","Union soviétique","Argentine","Espagne"],0],
+  ["Compétitions","Quel pays a remporté la Coupe du monde FIBA 2023 ?",["Serbie","Allemagne","États-Unis","Espagne"],1],
+  ["Compétitions","Quel pays est le plus titré de l'histoire de l'AfroBasket masculin ?",["Angola","Nigeria","Sénégal","Égypte"],0],
+  ["Compétitions","Au cours de quel mois se déroulent habituellement les Finales NBA ?",["Avril","Mai","Juin","Juillet"],2],
+  ["Compétitions","Comment s'appelle la compétition continentale africaine de clubs lancée par la NBA et la FIBA ?",["Basketball Africa League","African Champions Cup","Pan-African League","Afro Pro League"],0],
+  ["Compétitions","Quel trophée récompense le meilleur joueur de la saison régulière NBA ?",["Le MVP","Le Sixth Man","Le Most Improved","Le Defensive Player"],0]
+];
+
+/* =========================================================
+   MOTEUR
+   ========================================================= */
+const NB_QUESTIONS = 20;
+let serie = [], index = 0, score = 0, historique = [];
+
+function melanger(tableau){
+  const t = tableau.slice();
+  for(let i = t.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [t[i], t[j]] = [t[j], t[i]];
+  }
+  return t;
+}
+
+function afficher(id){
+  document.querySelectorAll('.ecran').forEach(e => e.classList.remove('actif'));
+  document.getElementById(id).classList.add('actif');
+  window.scrollTo(0, 0);
+}
+
+function lancerEpreuve(){
+  serie = melanger(BANQUE).slice(0, NB_QUESTIONS);
+  index = 0; score = 0; historique = [];
+  afficher('ecran-quiz');
+  afficherQuestion();
+}
+
+function afficherQuestion(){
+  const [categorie, enonce, choix, bonne] = serie[index];
+
+  document.getElementById('compteur').textContent = 'Question ' + (index + 1) + ' / ' + NB_QUESTIONS;
+  document.getElementById('affichage-score').textContent = score + (score > 1 ? ' pts' : ' pt');
+  document.getElementById('remplissage').style.width = Math.round((index / NB_QUESTIONS) * 100) + '%';
+  document.getElementById('categorie').textContent = categorie;
+  document.getElementById('question').textContent = enonce;
+
+  const verdict = document.getElementById('verdict');
+  verdict.textContent = '';
+  verdict.className = 'verdict';
+  document.getElementById('bouton-suivant').style.display = 'none';
+
+  // On mélange les propositions sans perdre la bonne réponse
+  const propositions = choix.map((texte, i) => ({ texte, juste: i === bonne }));
+  const melangees = melanger(propositions);
+
+  const liste = document.getElementById('choix');
+  liste.innerHTML = '';
+  melangees.forEach(p => {
+    const li = document.createElement('li');
+    const bouton = document.createElement('button');
+    bouton.textContent = p.texte;
+    bouton.onclick = () => repondre(bouton, p, melangees);
+    li.appendChild(bouton);
+    liste.appendChild(li);
+  });
+}
+
+function repondre(bouton, proposition, melangees){
+  const boutons = document.querySelectorAll('#choix button');
+  boutons.forEach(b => b.disabled = true);
+
+  const bonneReponse = melangees.find(p => p.juste).texte;
+  const verdict = document.getElementById('verdict');
+
+  if(proposition.juste){
+    score++;
+    bouton.classList.add('juste');
+    verdict.textContent = 'Juste. L’épreuve avance.';
+    verdict.className = 'verdict ok';
+  } else {
+    bouton.classList.add('faux');
+    boutons.forEach(b => { if(b.textContent === bonneReponse) b.classList.add('juste'); });
+    verdict.textContent = 'Faux. La bonne réponse était : ' + bonneReponse;
+    verdict.className = 'verdict ko';
+  }
+
+  historique.push({
+    question: serie[index][1],
+    donnee: proposition.texte,
+    bonne: bonneReponse,
+    juste: proposition.juste
+  });
+
+  document.getElementById('affichage-score').textContent = score + (score > 1 ? ' pts' : ' pt');
+  document.getElementById('remplissage').style.width = Math.round(((index + 1) / NB_QUESTIONS) * 100) + '%';
+
+  const suivant = document.getElementById('bouton-suivant');
+  suivant.textContent = (index === NB_QUESTIONS - 1) ? 'Voir le verdict' : 'Suivant';
+  suivant.style.display = 'inline-block';
+}
+
+function questionSuivante(){
+  index++;
+  if(index >= NB_QUESTIONS) afficherResultat();
+  else afficherQuestion();
+}
+
+function afficherResultat(){
+  const pourcent = Math.round((score / NB_QUESTIONS) * 100);
+  document.getElementById('note-chiffre').textContent = score + ' / ' + NB_QUESTIONS;
+  document.getElementById('note-pourcent').textContent = pourcent + ' %';
+
+  let mention;
+  if(pourcent === 100)     mention = "Sans faute. L'épreuve ne t'a rien appris que tu ne savais déjà.";
+  else if(pourcent >= 85)  mention = "Excellent. Tu connais ce jeu de l'intérieur.";
+  else if(pourcent >= 70)  mention = "Solide. Quelques trous, rien qu'une deuxième lecture ne comble.";
+  else if(pourcent >= 50)  mention = "Honorable. La persévérance fera le reste.";
+  else if(pourcent >= 30)  mention = "L'épreuve résiste. Recommence, elle finira par céder.";
+  else                     mention = "Le début est rude. C'est souvent le signe qu'il y a quelque chose à gagner.";
+  document.getElementById('mention').textContent = mention;
+
+  const recap = document.getElementById('recap');
+  recap.innerHTML = '';
+  historique.forEach((h, i) => {
+    const div = document.createElement('div');
+    div.className = 'recap-item';
+    const marque = h.juste ? '✔' : '✘';
+    const reponse = h.juste
+      ? '<span class="bonne">' + echapper(h.bonne) + '</span>'
+      : '<span class="mauvaise">' + echapper(h.donnee) + '</span> → <span class="bonne">' + echapper(h.bonne) + '</span>';
+    div.innerHTML = '<div class="q">' + marque + ' ' + (i + 1) + '. ' + echapper(h.question) + '</div><div>' + reponse + '</div>';
+    recap.appendChild(div);
+  });
+
+  afficher('ecran-resultat');
+}
+
+function echapper(texte){
+  const d = document.createElement('div');
+  d.textContent = texte;
+  return d.innerHTML;
+}
+
+function retourAccueil(){ afficher('ecran-accueil'); }
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    const suivant = document.getElementById('bouton-suivant');
+    if(document.getElementById('ecran-quiz').classList.contains('actif') && suivant.style.display !== 'none'){
+      questionSuivante();
+    }
+  }
+});
+</script>
+</body>
+</html>
