@@ -1,256 +1,70 @@
 # Motivation-
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Quiz Ultimate Pro</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+Une page web d'un seul fichier : un proverbe sur la persévérance, un bouton, et derrière, un quiz de basketball de 105 questions.
 
-<style>
-body{
-margin:0;
-font-family:Arial,Helvetica,sans-serif;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:#fff;
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
-}
+L'idée de départ était une simple carte de motivation. Elle est devenue une épreuve : le proverbe annonce que celui qui est mis à l'épreuve peut la réussir, autant en fournir une.
 
-.container{
-background:rgba(0,0,0,0.5);
-padding:30px;
-border-radius:14px;
-width:95%;
-max-width:900px;
-text-align:center;
-box-shadow:0 0 40px rgba(0,0,0,0.8);
-}
+## Aperçu
 
-.hidden{display:none}
+À l'ouverture, la citation et le bouton **Commencer l'épreuve**. Chaque partie tire 20 questions au hasard dans la banque et mélange aussi l'ordre des propositions, donc deux parties ne se ressemblent pas. Correction immédiate après chaque réponse, score en direct, barre de progression, et un récapitulatif complet à la fin avec les erreurs et les bonnes réponses.
 
-input,select,button{
-padding:12px;
-margin:10px;
-border:none;
-border-radius:8px;
-font-size:1em;
-}
+## Le quiz
 
-button{
-background:#f5c542;
-font-weight:700;
-cursor:pointer;
-}
+105 questions réparties en quatre catégories :
 
-.answer{
-background:#203a43;
-padding:14px;
-margin:8px 0;
-border-radius:8px;
-cursor:pointer;
-transition:.2s;
-}
-.answer:hover{
-background:#f5c542;
-color:#000;
-}
+| Catégorie | Contenu |
+|---|---|
+| Règles | dimensions, chronos, fautes, violations, arbitrage |
+| Histoire | Naismith, naissance de la NBA, FIBA, Jeux olympiques, BAL |
+| Légendes | Jordan, Kobe, LeBron, Curry, Giannis, les joueurs africains |
+| Compétitions | franchises, trophées, records, AfroBasket, Coupe du monde |
 
-.correct{color:#00ff99}
-.wrong{color:#ff6b6b}
+## Utilisation
 
-table{
-width:100%;
-margin-top:15px;
-border-collapse:collapse;
-}
-td,th{
-border-bottom:1px solid #555;
-padding:8px;
-}
-</style>
-</head>
+Ouvrir `index.html` dans un navigateur. Rien à installer, aucune dépendance, aucun appel réseau.
 
-<body>
+Pour publier via GitHub Pages : `Settings` → `Pages` → branche `main`, dossier racine. Le site sera servi à `https://pro1gramer-hic.github.io/Motivation-`.
 
-<div class="container" id="login">
-<h1>🎮 QUIZ ULTIMATE PRO 🎮</h1>
-<input id="username" placeholder="Entre ton pseudo">
-<button onclick="login()">Entrer</button>
-</div>
+## Modifier les questions
 
-<div class="container hidden" id="home">
-<h2>Bienvenue <span id="user"></span></h2>
-<button onclick="openMenu()">Commencer l’épreuve</button>
-<button onclick="showLeaderboard()">Classement</button>
-</div>
+Tout se trouve dans le tableau `BANQUE`, dans le `<script>` en bas de `index.html`. Une question par ligne, au format :
 
-<div class="container hidden" id="menu">
-<h2>Choisis ton quiz</h2>
+```js
+["Catégorie", "Énoncé de la question ?", ["Choix A", "Choix B", "Choix C", "Choix D"], 1]
+```
 
-<select id="category">
-<option value="physique">Physique</option>
-<option value="maths">Maths</option>
-<option value="sport">Sport</option>
-<option value="musique">Musique</option>
-<option value="jeux">Jeu Vidéo</option>
-<option value="film">Film</option>
-</select>
+Le dernier nombre est l'indice de la bonne réponse dans le tableau des choix, en partant de zéro. Dans l'exemple ci-dessus, la bonne réponse est « Choix B ».
 
-<select id="level">
-<option value="easy">Facile</option>
-<option value="medium">Moyen</option>
-<option value="hard">Difficile</option>
-</select>
+Pour changer le nombre de questions par partie, modifier la constante juste en dessous de la banque :
 
-<button onclick="startQuiz()">Lancer</button>
-</div>
+```js
+const NB_QUESTIONS = 20;
+```
 
-<div class="container hidden" id="quiz">
-<h3 id="timer">⏱️ 30s</h3>
-<h2 id="question"></h2>
-<div id="answers"></div>
-</div>
+## Personnalisation
 
-<div class="container hidden" id="result"></div>
+Les couleurs sont regroupées dans les variables CSS en haut du fichier :
 
-<div class="container hidden" id="leaderboard">
-<h2>🏆 Classement</h2>
-<table id="board"></table>
-<button onclick="backHome()">Retour</button>
-</div>
+```css
+--bleu-fond: #101c3e;
+--bleu-clair: #1e3c72;
+--or: #d4af37;
+```
 
-<script>
-let userName="";
-let questions=[],answersUser=[];
-let index=0,score=0,time=30,timer;
+Le proverbe d'accueil se trouve dans la section `#ecran-accueil`, les messages de fin dans la fonction `afficherResultat()`.
 
-const data={
-physique:{easy:["force","vitesse","masse","énergie"],medium:["pression","accélération","travail"],hard:["quantique","relativité","thermo"]},
-maths:{easy:["addition","multiplication"],medium:["équation","fonction"],hard:["intégrale","matrice"]},
-sport:{easy:["basket","foot"],medium:["tactique","règle"],hard:["analyse","performance"]},
-musique:{easy:["artiste","instrument"],medium:["album","concert"],hard:["harmonie","mixage"]},
-jeux:{easy:["console","niveau"],medium:["multijoueur","mission"],hard:["IA","esport"]},
-film:{easy:["acteur","genre"],medium:["scénario","montage"],hard:["cinéma","narration"]}
-};
+## Technique
 
-function login(){
-userName=username.value.trim();
-if(!userName) return;
-localStorage.setItem("quizUser",userName);
-user.innerText=userName;
-loginDiv();
-}
+HTML, CSS et JavaScript natifs dans un seul fichier. Pas de framework, pas de build, pas de CDN. La page est responsive et tient sur un écran de téléphone.
 
-function loginDiv(){
-login.classList.add("hidden");
-home.classList.remove("hidden");
-}
+## Structure
 
-if(localStorage.getItem("quizUser")){
-userName=localStorage.getItem("quizUser");
-user.innerText=userName;
-loginDiv();
-}
+```
+.
+├── index.html    # la page complète : structure, styles, logique, questions
+└── README.md
+```
 
-function generate(cat,lvl){
-let base=data[cat][lvl],arr=[];
-for(let i=1;i<=30;i++){
-arr.push({
-q:`Question ${i} (${base[i%base.length]})`,
-a:["A","B","C","D"],
-c:i%4
-});
-}
-return arr;
-}
+## Licence
 
-function openMenu(){
-home.classList.add("hidden");
-menu.classList.remove("hidden");
-}
-
-function startQuiz(){
-index=0;score=0;answersUser=[];
-questions=generate(category.value,level.value);
-menu.classList.add("hidden");
-quiz.classList.remove("hidden");
-startTimer();
-show();
-}
-
-function startTimer(){
-time=30;
-timer=setInterval(()=>{
-timerEl.innerText="⏱️ "+time+"s";
-time--;
-if(time<0) next();
-},1000);
-}
-
-function show(){
-if(index>=questions.length){end();return;}
-question.innerText=questions[index].q;
-answers.innerHTML="";
-questions[index].a.forEach((a,i)=>{
-let d=document.createElement("div");
-d.className="answer";
-d.innerText=a;
-d.onclick=()=>pick(i);
-answers.appendChild(d);
-});
-}
-
-function pick(i){
-answersUser.push(i);
-if(i===questions[index].c) score++;
-index++;time=30;
-show();
-}
-
-function end(){
-clearInterval(timer);
-quiz.classList.add("hidden");
-result.classList.remove("hidden");
-
-saveScore();
-
-let html=`<h2>${userName} : ${score}/30</h2><hr>`;
-questions.forEach((q,i)=>{
-html+=`<p>${i+1}. ${q.q}<br>
-<span class="correct">✔ ${q.a[q.c]}</span><br>
-<span class="wrong">❌ ${q.a[answersUser[i]]}</span></p>`;
-});
-html+=`<button onclick="backHome()">Accueil</button>`;
-result.innerHTML=html;
-}
-
-function saveScore(){
-let scores=JSON.parse(localStorage.getItem("scores")||"[]");
-scores.push({name:userName,score});
-scores.sort((a,b)=>b.score-a.score);
-localStorage.setItem("scores",JSON.stringify(scores));
-}
-
-function showLeaderboard(){
-home.classList.add("hidden");
-leaderboard.classList.remove("hidden");
-let scores=JSON.parse(localStorage.getItem("scores")||"[]");
-let html="<tr><th>Pseudo</th><th>Score</th></tr>";
-scores.slice(0,10).forEach(s=>{
-html+=`<tr><td>${s.name}</td><td>${s.score}</td></tr>`;
-});
-board.innerHTML=html;
-}
-
-function backHome(){
-leaderboard.classList.add("hidden");
-result.classList.add("hidden");
-home.classList.remove("hidden");
-}
-</script>
-
-</body>
-</html>
+Libre d'utilisation et de modification.
